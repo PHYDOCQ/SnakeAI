@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Snake AI - Decision Visualization</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐍</text></svg>">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">🐍</div>
+                <h1>Snake AI</h1>
+            </div>
+            
+            <div class="status-indicator">
+                <div id="systemStatus" class="status-container">
+                    <div class="status-dot online"></div>
+                    <span>System Online</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Game Visualization Panel -->
+        <div class="game-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Game Visualization</h2>
+                <div class="game-controls">
+                    <button id="startGame" class="btn btn-primary">Start Game</button>
+                    <button id="stopGame" class="btn btn-secondary" disabled>Stop Game</button>
+                    <button id="stepGame" class="btn btn-info" disabled>Step</button>
+                    <button id="autoPlay" class="btn btn-info">Auto Play</button>
+                </div>
+            </div>
+
+            <!-- Agent Selection -->
+            <div class="agent-selection">
+                <div class="agent-btn active" data-agent="rainbow">
+                    <div class="agent-name">Rainbow DQN</div>
+                    <div class="agent-description">Advanced distributional RL</div>
+                </div>
+                <div class="agent-btn" data-agent="mcts">
+                    <div class="agent-name">MCTS</div>
+                    <div class="agent-description">Monte Carlo Tree Search</div>
+                </div>
+                <div class="agent-btn" data-agent="ensemble">
+                    <div class="agent-name">Ensemble</div>
+                    <div class="agent-description">Hybrid multi-model</div>
+                </div>
+            </div>
+
+            <!-- Game Canvas -->
+            <div id="gameCanvasContainer" class="game-canvas-container">
+                <img id="gameCanvas" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600'><rect width='800' height='600' fill='%23000'/><text x='400' y='300' text-anchor='middle' fill='%23fff' font-size='24'>Game Not Started</text></svg>" alt="Game Visualization">
+                <div class="canvas-overlay">
+                    <div>Score: 0</div>
+                    <div>Length: 1</div>
+                    <div>Steps: 0</div>
+                </div>
+            </div>
+
+            <!-- AI Analysis Panel -->
+            <div class="ai-analysis">
+                <div class="analysis-section">
+                    <div class="analysis-label">Action Taken:</div>
+                    <div id="actionTaken" class="analysis-value">None</div>
+                </div>
+
+                <div class="analysis-section">
+                    <div class="analysis-label">AI Confidence:</div>
+                    <div id="confidence" class="analysis-value">0%</div>
+                </div>
+
+                <div class="analysis-section">
+                    <div class="analysis-label">Decision Quality:</div>
+                    <div id="decisionQuality" class="analysis-value">0%</div>
+                </div>
+
+                <div class="analysis-section">
+                    <div class="analysis-label">Action Probabilities:</div>
+                    <div class="probability-bars">
+                        <div id="probUp" class="prob-bar">
+                            <div class="prob-bar-label">UP</div>
+                            <div class="prob-bar-fill">
+                                <div class="prob-bar-value" style="width: 25%"></div>
+                            </div>
+                            <div class="prob-bar-text">25%</div>
+                        </div>
+                        <div id="probRight" class="prob-bar">
+                            <div class="prob-bar-label">RIGHT</div>
+                            <div class="prob-bar-fill">
+                                <div class="prob-bar-value" style="width: 25%"></div>
+                            </div>
+                            <div class="prob-bar-text">25%</div>
+                        </div>
+                        <div id="probDown" class="prob-bar">
+                            <div class="prob-bar-label">DOWN</div>
+                            <div class="prob-bar-fill">
+                                <div class="prob-bar-value" style="width: 25%"></div>
+                            </div>
+                            <div class="prob-bar-text">25%</div>
+                        </div>
+                        <div id="probLeft" class="prob-bar">
+                            <div class="prob-bar-label">LEFT</div>
+                            <div class="prob-bar-fill">
+                                <div class="prob-bar-value" style="width: 25%"></div>
+                            </div>
+                            <div class="prob-bar-text">25%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analysis-section">
+                    <div class="analysis-label">Strategy Type:</div>
+                    <div id="strategyType" class="analysis-value">Unknown</div>
+                </div>
+
+                <div class="analysis-section">
+                    <div class="analysis-label">Risk Level:</div>
+                    <div id="riskLevel" class="analysis-value">Unknown</div>
+                </div>
+
+                <div class="analysis-section">
+                    <div class="analysis-label">AI Reasoning:</div>
+                    <div id="aiExplanation" class="analysis-value">No explanation available</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <!-- Training Controls -->
+            <div class="control-section">
+                <h3 class="section-title">
+                    <div class="section-icon"></div>
+                    Training Control
+                </h3>
+                
+                <div class="training-status">
+                    <div id="trainingIndicator" class="training-indicator"></div>
+                    <div class="training-info">
+                        <div class="training-label">Training Status</div>
+                        <div id="trainingStatus" class="training-value">Stopped</div>
+                    </div>
+                </div>
+
+                <div class="game-controls">
+                    <button id="startTraining" class="btn btn-primary">Start Training</button>
+                    <button id="stopTraining" class="btn btn-secondary" disabled>Stop Training</button>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="control-section">
+                <h3 class="section-title">
+                    <div class="section-icon"></div>
+                    Statistics
+                </h3>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span id="episodeCount" class="stat-value">0</span>
+                        <div class="stat-label">Episodes</div>
+                    </div>
+                    <div class="stat-item">
+                        <span id="bestScore" class="stat-value">0</span>
+                        <div class="stat-label">Best Score</div>
+                    </div>
+                    <div class="stat-item">
+                        <span id="currentScore" class="stat-value">0</span>
+                        <div class="stat-label">Current Score</div>
+                    </div>
+                    <div class="stat-item">
+                        <span id="recentAverage" class="stat-value">0.00</span>
+                        <div class="stat-label">Recent Avg</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Curriculum Progress -->
+            <div class="control-section">
+                <h3 class="section-title">
+                    <div class="section-icon"></div>
+                    Curriculum Progress
+                </h3>
+                
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span>Stage: <span id="curriculumStage">Tutorial</span></span>
+                        <span>0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="curriculumProgress" class="progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualization Options -->
+            <div class="control-section">
+                <h3 class="section-title">
+                    <div class="section-icon"></div>
+                    Visualization Options
+                </h3>
+                
+                <div class="viz-options">
+                    <div class="viz-option" data-option="show_attention">
+                        <div class="viz-checkbox checked"></div>
+                        <span class="viz-label">Attention Heatmap</span>
+                    </div>
+                    <div class="viz-option" data-option="show_decision_path">
+                        <div class="viz-checkbox checked"></div>
+                        <span class="viz-label">Decision Path</span>
+                    </div>
+                    <div class="viz-option" data-option="show_safety_zones">
+                        <div class="viz-checkbox checked"></div>
+                        <span class="viz-label">Safety Zones</span>
+                    </div>
+                    <div class="viz-option" data-option="show_q_values">
+                        <div class="viz-checkbox checked"></div>
+                        <span class="viz-label">Q-Values</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Training Metrics -->
+            <div class="control-section">
+                <h3 class="section-title">
+                    <div class="section-icon"></div>
+                    Training Metrics
+                </h3>
+                
+                <div class="metrics-container">
+                    <div class="metrics-tabs">
+                        <button class="metrics-tab active" data-tab="training">Training</button>
+                        <button class="metrics-tab" data-tab="curriculum">Curriculum</button>
+                        <button class="metrics-tab" data-tab="comparison">Agents</button>
+                    </div>
+                    
+                    <div id="metricsContent" class="metrics-content">
+                        <div class="metrics-placeholder">
+                            <p>Training metrics will appear here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agent Comparison -->
+            <div class="control-section">
+                <h3 class="section-title">
+                    <div class="section-icon"></div>
+                    Agent Performance
+                </h3>
+                
+                <div id="agentComparison" class="agent-comparison">
+                    <div class="comparison-item">
+                        <span class="agent-name">Rainbow</span>
+                        <span class="agent-score">0.00</span>
+                    </div>
+                    <div class="comparison-item">
+                        <span class="agent-name">MCTS</span>
+                        <span class="agent-score">0.00</span>
+                    </div>
+                    <div class="comparison-item">
+                        <span class="agent-name">Ensemble</span>
+                        <span class="agent-score">0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Behavior Analysis -->
+            <div class="control-section">
+                <h3 class="section-title">
+                    <div class="section-icon"></div>
+                    Behavior Analysis
+                </h3>
+                
+                <div id="behaviorAnalysis" class="behavior-analysis">
+                    <div class="behavior-section">
+                        <h4>Behavior Profile</h4>
+                        <p><strong>Strategy:</strong> Unknown</p>
+                        <p><strong>Risk Level:</strong> Unknown</p>
+                        <p><strong>Decision Quality:</strong> 0.0%</p>
+                    </div>
+                    
+                    <div class="behavior-section">
+                        <h4>Insights</h4>
+                        <p>Analyzing behavior patterns...</p>
+                    </div>
+                    
+                    <div class="behavior-section">
+                        <h4>Recommendations</h4>
+                        <p>Collect more data for recommendations</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Container -->
+    <div id="errorContainer" class="error-container"></div>
+
+    <!-- Loading Styles -->
+    <style>
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top: 5px solid #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .loading-text {
+            color: white;
+            margin-top: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem;
+            border-radius: 8px;
+            z-index: 9999;
+            max-width: 300px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .error-message {
+            background: linear-gradient(45deg, #ff4444, #cc0000);
+            color: white;
+            border-left: 4px solid #ff0000;
+        }
+        
+        .success-message {
+            background: linear-gradient(45deg, #44ff44, #00cc00);
+            color: #000;
+            border-left: 4px solid #00ff00;
+        }
+        
+        .info-message {
+            background: linear-gradient(45deg, #4488ff, #0066cc);
+            color: white;
+            border-left: 4px solid #0088ff;
+        }
+        
+        .behavior-section {
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .behavior-section:last-child {
+            border-bottom: none;
+        }
+        
+        .behavior-section h4 {
+            color: #00ff88;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .behavior-section p {
+            margin: 0.25rem 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .agent-btn {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .agent-btn .agent-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .agent-btn .agent-description {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
+        .status-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
