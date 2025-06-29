@@ -1,0 +1,40 @@
+{
+  "episode_count": 0,
+  "total_steps": 67,
+  "best_score": 1,
+  "recent_average_score": 0.5714285714285714,
+  "curriculum_stats": {
+    "current_stage": {
+      "name": "Tutorial",
+      "difficulty": "BEGINNER",
+      "episodes": 7,
+      "successes": 4,
+      "success_rate": 0.5714285714285714,
+      "progress": 0.035,
+      "target_threshold": 0.7
+    },
+    "overall_progress": {
+      "total_episodes": 7,
+      "stages_completed": 0,
+      "current_stage_index": 0,
+      "total_stages": 5,
+      "curriculum_completion": 0.0
+    },
+    "progression_history": []
+  },
+  "agent_performance": {
+    "rainbow": {
+      "scores": [],
+      "wins": 0
+    },
+    "mcts": {
+      "scores": [],
+      "wins": 0
+    },
+    "ensemble": {
+      "scores": [],
+      "wins": 0
+    }
+  },
+  "training_time": 0.7433640956878662
+}

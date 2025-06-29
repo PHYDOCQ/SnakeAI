@@ -1,0 +1,2 @@
+episode,score,epsilon,loss,q_value_mean,steps,reward_total
+0,0,0,nan,-0.020777147263288498,4,-8.064377925299983
